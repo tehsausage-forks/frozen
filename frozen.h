@@ -22,15 +22,9 @@ extern "C" {
 #endif /* __cplusplus */
 
 #include <stdarg.h>
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdio.h>
-
-#if defined(_WIN32) && _MSC_VER < 1700
-typedef int bool;
-enum { false = 0, true = 1 };
-#else
-#include <stdbool.h>
-#endif
 
 /* JSON token type */
 enum json_token_type {
@@ -283,6 +277,7 @@ int json_prettify_file(const char *file_name);
 void *json_next_key(const char *s, int len, void *handle, const char *path,
                     struct json_token *key, struct json_token *val);
 
+
 /*
  * Iterate over an array at given JSON `path`.
  * Similar to `json_next_key`, but fills array index `idx` instead of `key`.
@@ -295,3 +290,4 @@ void *json_next_elem(const char *s, int len, void *handle, const char *path,
 #endif /* __cplusplus */
 
 #endif /* CS_FROZEN_FROZEN_H_ */
+

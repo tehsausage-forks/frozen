@@ -16,8 +16,7 @@
 
 #include "frozen.c"
 
-#include <float.h>
-#include <math.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -148,29 +147,10 @@ static const char *test_json_printf(void) {
     ASSERT(strcmp(buf, result) == 0);
   }
 
-  /* platform specific compatibility where it matters */
   {
     struct json_out out = JSON_OUT_BUF(buf, sizeof(buf));
     const char *result = "16045690985373621933 42";
-    json_printf(&out, "%" UINT64_FMT " %d", 0xdeadbeeffee1deadUL, 42);
-    ASSERT(strcmp(buf, result) == 0);
-  }
-  {
-    struct json_out out = JSON_OUT_BUF(buf, sizeof(buf));
-    const char *result = "12 42";
-    size_t foo = 12;
-    json_printf(&out,
-                "%lu"
-                " %d",
-                foo, 42);
-    ASSERT(strcmp(buf, result) == 0);
-  }
-
-  /* people live in the future today, %llu works even on recent windozes */
-  {
-    struct json_out out = JSON_OUT_BUF(buf, sizeof(buf));
-    const char *result = "16045690985373621933 42";
-    json_printf(&out, "%llu %d", 0xdeadbeeffee1deadUL, 42);
+    json_printf(&out, "%llu %d", 0xdeadbeeffee1deadULL, 42);
     ASSERT(strcmp(buf, result) == 0);
   }
 
@@ -265,10 +245,9 @@ static const char *test_json_printf(void) {
         "{\"foo\": "
         "\"12345678901234567890123456789012345678901234567890123456789012345678"
         "90123456789012345678901234567890\"}";
-    const char *s =
-        "\"123456789012345678901234567890123456789012345678901234567890"
-        "1234567890123456789012345678901234567890\"";
-    json_printf(&out, "{foo: %s}", s);
+    json_printf(&out, "{foo: %s}",
+                "\"123456789012345678901234567890123456789012345678901234567890"
+                "1234567890123456789012345678901234567890\"");
     ASSERT(strcmp(buf, result) == 0);
   }
 
@@ -297,26 +276,23 @@ static const char *test_json_printf(void) {
 
   {
     struct json_out out = JSON_OUT_BUF(buf, sizeof(buf));
-    const char *result = "\"YTI=\"";
     memset(buf, 0, sizeof(buf));
     ASSERT(json_printf(&out, "%V", "a2", 2) > 0);
-    ASSERT(strcmp(buf, result) == 0);
+    ASSERT(strcmp(buf, "\"YTI=\"") == 0);
   }
 
   {
     struct json_out out = JSON_OUT_BUF(buf, sizeof(buf));
-    const char *result = "\"ACABIAIgYWJj\"";
     memset(buf, 0, sizeof(buf));
     ASSERT(json_printf(&out, "%V", "\x00 \x01 \x02 abc", 9) > 0);
-    ASSERT(strcmp(buf, result) == 0);
+    ASSERT(strcmp(buf, "\"ACABIAIgYWJj\"") == 0);
   }
 
   {
     struct json_out out = JSON_OUT_BUF(buf, sizeof(buf));
-    const char *result = "\"002001200220616263\"";
     memset(buf, 0, sizeof(buf));
     ASSERT(json_printf(&out, "%H", 9, "\x00 \x01 \x02 abc") > 0);
-    ASSERT(strcmp(buf, result) == 0);
+    ASSERT(strcmp(buf, "\"002001200220616263\"") == 0);
   }
 
   {
@@ -331,30 +307,8 @@ static const char *test_json_printf(void) {
     const char *result = "<\"array\">0f";
     memset(buf, 0, sizeof(buf));
     ASSERT(json_printf(&out, "<array>%02x", 15) > 0);
-    printf("[%s]\n", buf);
     ASSERT(strcmp(buf, result) == 0);
   }
-
-  return NULL;
-}
-
-static const char *test_system(void) {
-  char buf[2020];
-  uint64_t u = (uint64_t) 0xdeadbeeffee1dead;
-  int64_t d = (int64_t) u;
-  int res;
-
-  snprintf(buf, sizeof(buf), "%" UINT64_FMT, u);
-  ASSERT(strcmp(buf, "16045690985373621933") == 0);
-
-  snprintf(buf, sizeof(buf), "%" INT64_FMT, d);
-  ASSERT(strcmp(buf, "-2401053088335929683") == 0);
-
-  res = snprintf(buf, 3, "foo");
-  ASSERT(res == 3);
-  ASSERT(buf[0] == 'f');
-  ASSERT(buf[1] == 'o');
-  ASSERT(buf[2] == '\0');
 
   return NULL;
 }
@@ -629,7 +583,7 @@ static const char *test_scanf(void) {
                       &fc) == 3);
     ASSERT(fa == a);
     ASSERT(fb == b);
-    ASSERT(fabs(fc - c) < FLT_EPSILON);
+    ASSERT(fc == c);
   }
 
   return NULL;
@@ -693,11 +647,10 @@ static int compare_file(const char *file_name, const char *s) {
 
 static const char *test_fprintf(void) {
   const char *fname = "a.json";
-  const char *result = "{\"a\":123}\n";
   char *p;
   ASSERT(json_fprintf(fname, "{a:%d}", 123) > 0);
   ASSERT((p = json_fread(fname)) != NULL);
-  ASSERT(strcmp(p, result) == 0);
+  ASSERT(strcmp(p, "{\"a\":123}\n") == 0);
   free(p);
   remove(fname);
   ASSERT(json_fread(fname) == NULL);
@@ -930,7 +883,6 @@ static const char *run_all_tests(void) {
   RUN_TEST(test_scanf);
   RUN_TEST(test_errors);
   RUN_TEST(test_json_printf);
-  RUN_TEST(test_system);
   RUN_TEST(test_callback_api);
   RUN_TEST(test_callback_api_long_path);
   RUN_TEST(test_json_unescape);
@@ -945,3 +897,4 @@ int main(void) {
   printf("%s, tests run: %d\n", fail_msg ? "FAIL" : "PASS", static_num_tests);
   return fail_msg == NULL ? EXIT_SUCCESS : EXIT_FAILURE;
 }
+
