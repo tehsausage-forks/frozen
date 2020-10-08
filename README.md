@@ -1,5 +1,3 @@
-JSON parser and emitter for C/C++
-=================================
 
 # Features
 
@@ -409,14 +407,7 @@ json_prettify_file(tmp_file_name);  // Optional
 rename(tmp_file_name, settings_file_name);
 ```
 
-# Contributions
-
-To submit contributions, sign
-[Cesanta CLA](https://docs.cesanta.com/contributors_la.shtml)
-and send GitHub pull request. You retain the copyright on your contributions.
-
 # Licensing
 
-Frozen is released under Commercial and [GNU GPLv.2](http://www.gnu.org/licenses/old-licenses/gpl-2.0.html) open source licenses.
+Frozen-GPLv2 is released under the [GNU GPLv.2](http://www.gnu.org/licenses/old-licenses/gpl-2.0.html) open source license.
 
-Commercial Projects: [Contact us for the commercial license.](https://www.mongoose-os.com/contact.html)
