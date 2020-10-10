@@ -1,6 +1,7 @@
 /*
  * Copyright (c) 2004-2013 Sergey Lyubka <valenok@gmail.com>
  * Copyright (c) 2013 Cesanta Software Limited
+ * Copyright (c) 2020 Julian Smythe <sausage@tehsausage.com>
  * All rights reserved
  *
  * This program is free software; you can redistribute it and/or
@@ -29,7 +30,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-const char *tok_type_names[] = {
+static const char *tok_type_names[] = {
     "INVALID", "STRING",       "NUMBER",     "TRUE",        "FALSE",
     "NULL",    "OBJECT_START", "OBJECT_END", "ARRAY_START", "ARRAY_END",
 };
@@ -423,20 +424,24 @@ static void scan_array(const char *str, int len, void *user_data) {
 }
 
 static const char *test_scanf(void) {
-  char buf[100] = "";
-  int a = 0, b = 0;
-  char *d = NULL;
-  const char *str =
-      "{ a: 1234, b : true, \"c\": {x: [17, 78, -20]}, d: \"hi%20there\" }";
+  {
 
-  ASSERT(json_scanf(str, strlen(str), "{a: %d, b: %B, c: [%M], d: %Q}", &a, &b,
+    char buf[100] = "";
+    int a = 0, b = 0;
+    char *d = NULL;
+
+    const char *str =
+        "{ a: 1234, b : true, \"c\": {x: [17, 78, -20]}, d: \"hi%20there\" }";
+
+    ASSERT(json_scanf(str, strlen(str), "{a: %d, b: %B, c: [%M], d: %Q}", &a, &b,
                     &scan_array, buf, &d) == 4);
-  ASSERT(a == 1234);
-  ASSERT(b == 1);
-  ASSERT(strcmp(buf, "0[17] 1[78] 2[-20] ") == 0);
-  ASSERT(d != NULL);
-  ASSERT(strcmp(d, "hi%20there") == 0);
-  free(d);
+    ASSERT(a == 1234);
+    ASSERT(b == 1);
+    ASSERT(strcmp(buf, "0[17] 1[78] 2[-20] ") == 0);
+    ASSERT(d != NULL);
+    ASSERT(strcmp(d, "hi%20there") == 0);
+    free(d);
+  }
 
   {
     /* Test errors */
@@ -713,10 +718,10 @@ static const char *test_json_setf(void) {
   {
     /* Delete non-existent key */
     struct json_out out = JSON_OUT_BUF(buf, sizeof(buf));
-    const char *s1 = "{\"a\":1}";
-    int res = json_setf(s1, strlen(s1), &out, ".d", NULL);
+    const char *s = "{\"a\":1}";
+    int res = json_setf(s, strlen(s), &out, ".d", NULL);
     ASSERT(res == 0);
-    ASSERT(strcmp(buf, s1) == 0);
+    ASSERT(strcmp(buf, s) == 0);
   }
 
   {
@@ -869,11 +874,11 @@ static const char *test_json_next(void) {
 
   {
     /* Traverse more complex object */
-    const char *s = "{ \"a\": [], \"b\": { \"c\": true, \"d\": 1234 } }";
+    const char *s2 = "{ \"a\": [], \"b\": { \"c\": true, \"d\": 1234 } }";
     void *h = NULL;
     int i = 0;
     const char *results[] = {"[c] -> [true]", "[d] -> [1234]"};
-    while ((h = json_next_key(s, len, h, ".b", &key, &val)) != NULL) {
+    while ((h = json_next_key(s2, len, h, ".b", &key, &val)) != NULL) {
       snprintf(buf, sizeof(buf), "[%.*s] -> [%.*s]", key.len, key.ptr, val.len,
                val.ptr);
       ASSERT(strcmp(results[i], buf) == 0);
