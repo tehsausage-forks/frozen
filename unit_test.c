@@ -14,7 +14,15 @@
  * GNU General Public License for more details.
  */
 
-#include "frozen.c"
+#include "frozen/escape.c"
+#include "frozen/fread.c"
+#include "frozen/next.c"
+#include "frozen/prettify.c"
+#include "frozen/printer.c"
+#include "frozen/printf.c"
+#include "frozen/scanf.c"
+#include "frozen/setf.c"
+#include "frozen/walk.c"
 
 #include <stdbool.h>
 #include <stdio.h>
@@ -633,6 +641,7 @@ static const char *test_eos(void) {
   memcpy(buf, s, s_len);
   ASSERT(json_scanf(buf, n, "{a:%d}", &a) == 1);
   ASSERT(a == 12345);
+  free(buf);
   return NULL;
 }
 

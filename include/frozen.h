@@ -26,6 +26,10 @@ extern "C" {
 #include <stddef.h>
 #include <stdio.h>
 
+#ifndef JSON_MAX_PATH_LEN
+#define JSON_MAX_PATH_LEN 256
+#endif
+
 /* JSON token type */
 enum json_token_type {
   JSON_TYPE_INVALID = 0, /* memsetting to 0 should create INVALID value */
@@ -54,10 +58,6 @@ struct json_token {
 
 #define JSON_INVALID_TOKEN \
   { 0, 0, JSON_TYPE_INVALID }
-
-/* Error codes */
-#define JSON_STRING_INVALID -1
-#define JSON_STRING_INCOMPLETE -2
 
 /*
  * Callback-based SAX-like API.
