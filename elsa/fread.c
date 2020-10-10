@@ -25,15 +25,15 @@ char *json_fread(const char *path) {
   char *data = NULL;
   if ((fp = fopen(path, "rb")) == NULL) {
   } else if (fseek(fp, 0, SEEK_END) != 0) {
-    fclose(fp);
+    fclose(fp);                                            /* LCOV_EXCL_LINE */
   } else {
     size_t size = ftell(fp);
     data = (char *) malloc(size + 1);
     if (data != NULL) {
       fseek(fp, 0, SEEK_SET); /* Some platforms might not have rewind(), Oo */
       if (fread(data, 1, size, fp) != size) {
-        free(data);
-        return NULL;
+        free(data);                                        /* LCOV_EXCL_LINE */
+        return NULL;                                       /* LCOV_EXCL_LINE */
       }
       data[size] = '\0';
     }

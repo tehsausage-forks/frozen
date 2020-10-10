@@ -80,8 +80,8 @@ static void prettify_cb(void *userdata, const char *name, size_t name_len,
       pd->out->printer(pd->out, t->ptr, t->len);
       if (t->type == JSON_TYPE_STRING) pd->out->printer(pd->out, "\"", 1);
       break;
-    default:
-      break;
+    default:                                               /* LCOV_EXCL_LINE */
+      break;                                               /* LCOV_EXCL_LINE */
   }
   pd->last_token = t->type;
 }

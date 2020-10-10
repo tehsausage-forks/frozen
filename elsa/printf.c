@@ -177,16 +177,16 @@ int json_vprintf(struct json_out *out, const char *fmt, va_list xap) {
           len_mod = '8';  /* magic value representing 'll' */
           ++n;
         } else if (len_mod == 'I') {
-          len_mod = 'j';
-          if (fmt[n] == '3' && fmt[n+1] == '2') {
-            if (sizeof(int) >= 4) len_mod = '\0';
-            else                  len_mod = 'l';
-            n += 2;
-          } else if (fmt[n] == '6' && fmt[n+1] == '4') {
-            if (sizeof(int) >= 8)            len_mod = '\0';
-            else if (sizeof(long) >= 8)      len_mod = 'l';
-            else if (sizeof(long long) >= 8) len_mod = '8';
-            n += 2;
+          len_mod = 'j';                                   /* LCOV_EXCL_LINE */
+          if (fmt[n] == '3' && fmt[n+1] == '2') {          /* LCOV_EXCL_LINE */
+            if (sizeof(int) >= 4) len_mod = '\0';          /* LCOV_EXCL_LINE */
+            else                  len_mod = 'l';           /* LCOV_EXCL_LINE */
+            n += 2;                                        /* LCOV_EXCL_LINE */
+          } else if (fmt[n] == '6' && fmt[n+1] == '4') {   /* LCOV_EXCL_LINE */
+            if (sizeof(int) >= 8)            len_mod = '\0';/* LCOV_EXCL_LINE*/
+            else if (sizeof(long) >= 8)      len_mod = 'l';/* LCOV_EXCL_LINE */
+            else if (sizeof(long long) >= 8) len_mod = '8';/* LCOV_EXCL_LINE */
+            n += 2;                                        /* LCOV_EXCL_LINE */
           }
         }
 
@@ -280,9 +280,9 @@ int json_vprintf(struct json_out *out, const char *fmt, va_list xap) {
           case '%':
             break;
 
-          default:
+          default:                                         /* LCOV_EXCL_LINE */
             /* if the specifier is unknown, treat it as an int and pray */
-            (void) va_arg(ap, int);
+            (void) va_arg(ap, int);                        /* LCOV_EXCL_LINE */
         }
 
         len += out->printer(out, pbuf, need_len);
