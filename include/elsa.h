@@ -23,13 +23,18 @@ extern "C" {
 #endif /* __cplusplus */
 
 #include <stdarg.h>
-#include <stdbool.h>
 #include <stddef.h>
 #include <stdio.h>
+
+#include <bits/types/FILE.h>
 
 #ifndef JSON_MAX_PATH_LEN
 #define JSON_MAX_PATH_LEN 256
 #endif
+
+/* Error codes */
+#define JSON_STRING_INVALID -1
+#define JSON_STRING_INCOMPLETE -2
 
 /* JSON token type */
 enum json_token_type {

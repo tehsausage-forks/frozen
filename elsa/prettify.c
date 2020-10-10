@@ -16,13 +16,10 @@
  */
 
 #include "elsa.h"
-#include <ctype.h>
-#include <inttypes.h>
-#include <stdarg.h>
+#include <stddef.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
-#include "util.h"
+#include <stdlib.h>
 
 struct prettify_data {
   struct json_out *out;

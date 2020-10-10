@@ -18,6 +18,8 @@
 #ifndef ELSA_UTIL_H_
 #define ELSA_UTIL_H_
 
+#include "elsa.h"
+
 static int is_space(int ch) {
   return ch == ' ' || ch == '\t' || ch == '\r' || ch == '\n';
 }
@@ -34,9 +36,16 @@ static int is_hex_digit(int ch) {
   return is_digit(ch) || (ch >= 'a' && ch <= 'f') || (ch >= 'A' && ch <= 'F');
 }
 
-/* Error codes */
-#define JSON_STRING_INVALID -1
-#define JSON_STRING_INCOMPLETE -2
+static int is_print(int ch) {
+  return (ch >= 0x20 && ch <= 0x7E);
+}
+
+static int to_lower(int ch) {
+  if (ch >= 'A' && ch <= 'Z')
+    return ch - 'A' + 'a';
+  else
+    return ch;
+}
 
 static int get_escape_len(const char *s, int len) {
   switch (*s) {

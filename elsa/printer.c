@@ -16,11 +16,8 @@
  */
 
 #include "elsa.h"
-#include <ctype.h>
-#include <inttypes.h>
-#include <stdarg.h>
+#include <stddef.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 
 int json_printer_buf(struct json_out *out, const char *buf, size_t len) {

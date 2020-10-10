@@ -16,11 +16,7 @@
  */
 
 #include "elsa.h"
-#include <ctype.h>
-#include <inttypes.h>
-#include <stdarg.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include <stddef.h>
 #include <string.h>
 #include "util.h"
 
@@ -37,7 +33,7 @@ int json_escape(struct json_out *out, const char *p, size_t len) {
     } else if (ch >= '\b' && ch <= '\r') {
       n += out->printer(out, "\\", 1);
       n += out->printer(out, &specials[ch - '\b'], 1);
-    } else if (isprint(ch)) {
+    } else if (is_print(ch)) {
       n += out->printer(out, p + i, 1);
     } else if ((cl = get_utf8_char_len(ch)) == 1) {
       n += out->printer(out, "\\u00", 4);

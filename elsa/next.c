@@ -16,13 +16,9 @@
  */
 
 #include "elsa.h"
-#include <ctype.h>
-#include <inttypes.h>
-#include <stdarg.h>
-#include <stdio.h>
+#include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
-#include "util.h"
 
 struct next_data {
   void *handle;            // Passed handle. Changed if a next entry is found

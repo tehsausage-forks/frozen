@@ -16,9 +16,9 @@
  */
 
 #include "elsa.h"
-#include <ctype.h>
-#include <inttypes.h>
 #include <stdarg.h>
+#include <stdbool.h>
+#include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -60,8 +60,8 @@ static int b64dec(const char *src, int n, char *dst) {
 
 static unsigned char hexdec(const char *s) {
 #define HEXTOI(x) (x >= '0' && x <= '9' ? x - '0' : x - 'W')
-  int a = tolower(*(const unsigned char *) s);
-  int b = tolower(*(const unsigned char *) (s + 1));
+  int a = to_lower(*(const unsigned char *) s);
+  int b = to_lower(*(const unsigned char *) (s + 1));
   return (HEXTOI(a) << 4) | HEXTOI(b);
 }
 

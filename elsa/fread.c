@@ -16,13 +16,9 @@
  */
 
 #include "elsa.h"
-#include <ctype.h>
-#include <inttypes.h>
-#include <stdarg.h>
+#include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
-#include "util.h"
 
 char *json_fread(const char *path) {
   FILE *fp;

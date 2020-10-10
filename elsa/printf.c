@@ -16,9 +16,9 @@
  */
 
 #include "elsa.h"
-#include <ctype.h>
 #include <inttypes.h>
 #include <stdarg.h>
+#include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -192,9 +192,9 @@ int json_vprintf(struct json_out *out, const char *fmt, va_list xap) {
         }
       }
       fmt += skip;
-    } else if (*fmt == '_' || isalpha(*fmt)) {
+    } else if (*fmt == '_' || is_alpha(*fmt)) {
       len += out->printer(out, quote, 1);
-      while (*fmt == '_' || isalpha(*fmt) || is_digit(*fmt)) {
+      while (*fmt == '_' || is_alpha(*fmt) || is_digit(*fmt)) {
         len += out->printer(out, fmt, 1);
         fmt++;
       }
