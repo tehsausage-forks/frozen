@@ -393,8 +393,8 @@ static const char *test_json_printf(void) {
   {
     struct json_out out = JSON_OUT_BUF(buf, sizeof(buf));
     memset(buf, 0, sizeof(buf));
-    ASSERT(json_printf(&out, "%V", "\x00 \x01 \x02 abc", 9) > 0);
-    ASSERT(strcmp(buf, "\"ACABIAIgYWJj\"") == 0);
+    ASSERT(json_printf(&out, "%V", "\x00 \x01 \x02 abc<~>", 12) > 0);
+    ASSERT(strcmp(buf, "\"ACABIAIgYWJjPH4+\"") == 0);
   }
 
   {
@@ -656,22 +656,22 @@ static const char *test_scanf(void) {
   }
 
   {
-    const char *str = "{a : \"61626320\" }";
+    const char *str = "{a : \"616263205A\" }";
     int len = 0;
     char *result = NULL;
     ASSERT(json_scanf(str, strlen(str), "{a: %H}", &len, &result) == 1);
-    ASSERT(len == 4);
-    ASSERT(strcmp(result, "abc ") == 0);
+    ASSERT(len == 5);
+    ASSERT(strcmp(result, "abc Z") == 0);
     free(result);
   }
 
   {
-    const char *str = "{a : \"0L/RgNC40LLQtdGC0Ys=\" }";
+    const char *str = "{a : \"0L/RgNC40LLQtdGC0YsgPH4+\" }";
     int len;
     char *result;
     ASSERT(json_scanf(str, strlen(str), "{a: %V}", &result, &len) == 1);
-    ASSERT(len == 14);
-    ASSERT(strcmp(result, "приветы") == 0);
+    ASSERT(len == 18);
+    ASSERT(strcmp(result, "приветы <~>") == 0);
     free(result);
   }
 
