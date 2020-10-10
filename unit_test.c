@@ -14,15 +14,15 @@
  * GNU General Public License for more details.
  */
 
-#include "frozen/escape.c"
-#include "frozen/fread.c"
-#include "frozen/next.c"
-#include "frozen/prettify.c"
-#include "frozen/printer.c"
-#include "frozen/printf.c"
-#include "frozen/scanf.c"
-#include "frozen/setf.c"
-#include "frozen/walk.c"
+#include "elsa/escape.c"
+#include "elsa/fread.c"
+#include "elsa/next.c"
+#include "elsa/prettify.c"
+#include "elsa/printer.c"
+#include "elsa/printf.c"
+#include "elsa/scanf.c"
+#include "elsa/setf.c"
+#include "elsa/walk.c"
 
 #include <stdbool.h>
 #include <stdio.h>
@@ -245,7 +245,7 @@ static const char *test_json_printf(void) {
 
   {
     /*
-     * Check long string (which forces frozen to allocate a temporary buffer
+     * Check long string (which forces elsa to allocate a temporary buffer
      * from heap)
      */
     struct json_out out = JSON_OUT_BUF(buf, sizeof(buf));
@@ -619,14 +619,14 @@ static const char *test_parse_string(void) {
   const char *str = " \" foo\\bar\"";
   const int str_len = strlen(str);
   struct json_token t;
-  struct frozen f;
-  memset(&f, 0, sizeof(f));
-  f.end = str + str_len;
-  f.cur = str;
-  f.callback_data = (void *) &t;
-  f.callback = cb2;
+  struct walk_ctx ctx;
+  memset(&ctx, 0, sizeof(ctx));
+  ctx.end = str + str_len;
+  ctx.cur = str;
+  ctx.callback_data = (void *) &t;
+  ctx.callback = cb2;
 
-  ASSERT(parse_string(&f) == 0);
+  ASSERT(parse_string(&ctx) == 0);
   ASSERT(strncmp(t.ptr, " foo\\bar", t.len) == 0);
 
   return NULL;

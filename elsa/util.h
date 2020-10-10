@@ -1,6 +1,7 @@
 /*
  * Copyright (c) 2004-2013 Sergey Lyubka <valenok@gmail.com>
  * Copyright (c) 2013 Cesanta Software Limited
+ * Copyright (c) 2020 Julian Smythe <sausage@tehsausage.com>
  * All rights reserved
  *
  * This program is free software; you can redistribute it and/or
@@ -14,8 +15,8 @@
  * GNU General Public License for more details.
  */
 
-#ifndef CS_FROZEN_UTIL_H_
-#define CS_FROZEN_UTIL_H_
+#ifndef ELSA_UTIL_H_
+#define ELSA_UTIL_H_
 
 static int is_space(int ch) {
   return ch == ' ' || ch == '\t' || ch == '\r' || ch == '\n';
@@ -71,4 +72,4 @@ static int get_utf8_char_len(unsigned char ch) {
   }
 }
 
-#endif /* CS_FROZEN_FROZEN_H_ */
+#endif /* ELSA_UTIL_H_ */

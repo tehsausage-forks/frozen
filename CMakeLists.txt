@@ -1,71 +1,71 @@
 cmake_minimum_required(VERSION 3.9)
-project(frozen-gplv2 LANGUAGES C)
+project(elsa LANGUAGES C)
 
 SET(CMAKE_SHARED_LIBRARY_LINK_C_FLAGS "")
 
 include_directories(include)
 
-option(FROZEN_CHECK_ALL_STANDARDS
+option(ELSA_CHECK_ALL_STANDARDS
   "Checks C90, C99, C11 and C17 compliance" OFF)
-option(FROZEN_CHECK_COVERAGE
+option(ELSA_CHECK_COVERAGE
   "Enables code coverage checking (for Debug builds) (clang/gcc only)" OFF)
-option(FROZEN_CHECK_SIZE
+option(ELSA_CHECK_SIZE
   "Builds a simple program to check binary size (for Release builds)" OFF)
 
-add_library(frozen
-  include/frozen.h
-  frozen/escape.c
-  frozen/fread.c
-  frozen/next.c
-  frozen/prettify.c
-  frozen/printer.c
-  frozen/printf.c
-  frozen/scanf.c
-  frozen/setf.c
-  frozen/util.h
-  frozen/walk.c
+add_library(elsa
+  include/elsa.h
+  elsa/escape.c
+  elsa/fread.c
+  elsa/next.c
+  elsa/prettify.c
+  elsa/printer.c
+  elsa/printf.c
+  elsa/scanf.c
+  elsa/setf.c
+  elsa/util.h
+  elsa/walk.c
 )
 
-target_include_directories(frozen
+target_include_directories(elsa
   PUBLIC
     "$<INSTALL_INTERFACE:include>"
     "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
 )
 
-set_target_properties(frozen
+set_target_properties(elsa
   PROPERTIES
     VERSION 1
     SOVERSION 1
-    PUBLIC_HEADER include/frozen.h
+    PUBLIC_HEADER include/elsa.h
 )
 
-if(FROZEN_CHECK_ALL_STANDARDS)
-  add_library(frozen90 STATIC $<TARGET_PROPERTY:frozen,SOURCES>)
-  set_property(TARGET frozen90 PROPERTY C_STANDARD 90)
-  set_property(TARGET frozen90 PROPERTY C_EXTENSIONS ON)
+if(ELSA_CHECK_ALL_STANDARDS)
+  add_library(elsa90 STATIC $<TARGET_PROPERTY:elsa,SOURCES>)
+  set_property(TARGET elsa90 PROPERTY C_STANDARD 90)
+  set_property(TARGET elsa90 PROPERTY C_EXTENSIONS ON)
 
-  add_library(frozen99 STATIC $<TARGET_PROPERTY:frozen,SOURCES>)
-  set_property(TARGET frozen99 PROPERTY C_STANDARD 99)
-  set_property(TARGET frozen99 PROPERTY C_EXTENSIONS OFF)
+  add_library(elsa99 STATIC $<TARGET_PROPERTY:elsa,SOURCES>)
+  set_property(TARGET elsa99 PROPERTY C_STANDARD 99)
+  set_property(TARGET elsa99 PROPERTY C_EXTENSIONS OFF)
 
-  add_library(frozen11 STATIC $<TARGET_PROPERTY:frozen,SOURCES>)
-  set_property(TARGET frozen11 PROPERTY C_STANDARD 11)
-  set_property(TARGET frozen11 PROPERTY C_EXTENSIONS OFF)
+  add_library(elsa11 STATIC $<TARGET_PROPERTY:elsa,SOURCES>)
+  set_property(TARGET elsa11 PROPERTY C_STANDARD 11)
+  set_property(TARGET elsa11 PROPERTY C_EXTENSIONS OFF)
 
   if(("${CMAKE_C_COMPILER_ID}" MATCHES "Clang")
   OR ("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU"))
-    add_library(frozen17 STATIC $<TARGET_PROPERTY:frozen,SOURCES>)
-    target_compile_options(frozen17 PRIVATE -std=c17)
+    add_library(elsa17 STATIC $<TARGET_PROPERTY:elsa,SOURCES>)
+    target_compile_options(elsa17 PRIVATE -std=c17)
   endif()
 endif()
 
-if(FROZEN_CHECK_SIZE)
+if(ELSA_CHECK_SIZE)
   if(NOT CMAKE_BUILD_TYPE STREQUAL "Release")
     message(WARNING "CMAKE_BUILD_TYPE should be Release for a valid size test")
   endif()
 
   add_executable(size_test size_test.c)
-  target_link_libraries(size_test frozen)
+  target_link_libraries(size_test elsa)
   set_property(TARGET size_test PROPERTY C_STANDARD 99)
   set_property(TARGET size_test PROPERTY C_EXTENSIONS OFF)
 
@@ -80,7 +80,7 @@ add_executable(unit_test unit_test.c)
 set_property(TARGET unit_test PROPERTY C_STANDARD 99)
 set_property(TARGET unit_test PROPERTY C_EXTENSIONS OFF)
 
-if(FROZEN_CHECK_COVERAGE)
+if(ELSA_CHECK_COVERAGE)
   if(CMAKE_BUILD_TYPE MATCHES "Rel")
     message(WARNING "CMAKE_BUILD_TYPE should be Debug for code coverage")
   endif()
@@ -111,15 +111,15 @@ endif()
 include(GNUInstallDirs)
 
 # will install:
-# - lib/frozen.a (or lib/frozen.so if BUILD_SHARED_LIBS is set)
-# - include/frozen.h
-install(TARGETS frozen
-  EXPORT frozen-targets
+# - lib/elsa.a (or lib/elsa.so if BUILD_SHARED_LIBS is set)
+# - include/elsa.h
+install(TARGETS elsa
+  EXPORT elsa-targets
   LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
   PUBLIC_HEADER DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
 )
 
-install(EXPORT frozen-targets
-  DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/frozen"
-  NAMESPACE frozen
+install(EXPORT elsa-targets
+  DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/elsa"
+  NAMESPACE elsa
 )

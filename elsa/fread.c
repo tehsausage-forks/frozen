@@ -1,6 +1,7 @@
 /*
  * Copyright (c) 2004-2013 Sergey Lyubka <valenok@gmail.com>
  * Copyright (c) 2013 Cesanta Software Limited
+ * Copyright (c) 2020 Julian Smythe <sausage@tehsausage.com>
  * All rights reserved
  *
  * This program is free software; you can redistribute it and/or
@@ -14,27 +15,33 @@
  * GNU General Public License for more details.
  */
 
-#include "frozen.h"
+#include "elsa.h"
 #include <ctype.h>
 #include <inttypes.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "util.h"
 
-int json_printer_buf(struct json_out *out, const char *buf, size_t len) {
-  size_t avail = out->u.buf.size - out->u.buf.len;
-  size_t n = len < avail ? len : avail;
-  memcpy(out->u.buf.buf + out->u.buf.len, buf, n);
-  out->u.buf.len += n;
-  if (out->u.buf.size > 0) {
-    size_t idx = out->u.buf.len;
-    if (idx >= out->u.buf.size) idx = out->u.buf.size - 1;
-    out->u.buf.buf[idx] = '\0';
+char *json_fread(const char *path) {
+  FILE *fp;
+  char *data = NULL;
+  if ((fp = fopen(path, "rb")) == NULL) {
+  } else if (fseek(fp, 0, SEEK_END) != 0) {
+    fclose(fp);
+  } else {
+    size_t size = ftell(fp);
+    data = (char *) malloc(size + 1);
+    if (data != NULL) {
+      fseek(fp, 0, SEEK_SET); /* Some platforms might not have rewind(), Oo */
+      if (fread(data, 1, size, fp) != size) {
+        free(data);
+        return NULL;
+      }
+      data[size] = '\0';
+    }
+    fclose(fp);
   }
-  return len;
-}
-
-int json_printer_file(struct json_out *out, const char *buf, size_t len) {
-  return fwrite(buf, 1, len, out->u.fp);
+  return data;
 }

@@ -1,6 +1,7 @@
 /*
  * Copyright (c) 2004-2013 Sergey Lyubka <valenok@gmail.com>
  * Copyright (c) 2013 Cesanta Software Limited
+ * Copyright (c) 2020 Julian Smythe <sausage@tehsausage.com>
  * All rights reserved
  *
  * This program is free software; you can redistribute it and/or
@@ -14,8 +15,8 @@
  * GNU General Public License for more details.
  */
 
-#ifndef CS_FROZEN_FROZEN_H_
-#define CS_FROZEN_FROZEN_H_
+#ifndef ELSA_ELSA_H_
+#define ELSA_ELSA_H_
 
 #ifdef __cplusplus
 extern "C" {
@@ -289,5 +290,5 @@ void *json_next_elem(const char *s, int len, void *handle, const char *path,
 }
 #endif /* __cplusplus */
 
-#endif /* CS_FROZEN_FROZEN_H_ */
+#endif /* ELSA_ELSA_H_ */
 

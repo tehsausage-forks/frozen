@@ -12,8 +12,6 @@
 - Built-in base64 encoder and decoder for binary data
 - Parser provides low-level callback API and high-level scanf-like API
 - 100% test coverage
-- Used in [Mongoose OS](https://mongoose-os.com), an operating system
-  for connected commercial products on low-power microcontrollers
 
 # API reference
 
@@ -107,13 +105,12 @@ Returns 0 if no array element found, otherwise non-0.
 
 ## `json_printf()`
 
-Frozen printing API is pluggable. Out of the box, Frozen provides a way
-to print to a string buffer or to an opened file stream. It is easy to
-to tell Frozen to print to another destination, for example, to a socket, etc.
-Frozen does this by defining an "output context" descriptor which has
-a pointer to a low-level printing function. If you want to print to another
-destination, just define your specific printing function and initialise
-output context with it.
+Elsa printing API is pluggable. Out of the box, Else provides a way to print
+to a string buffer or to an opened file stream. It is easy to to tell Elsa to
+print to another destination, for example, to a socket, etc. Elsa does this by
+defining an "output context" descriptor which has a pointer to a low-level
+printing function. If you want to print to another destination, just define
+your specific printing function and initialise output context with it.
 
 This is the definition of the output context descriptor:
 
@@ -132,8 +129,7 @@ struct json_out {
 };
 ```
 
-Frozen provides two helper macros to initialise two built-in output
-descriptors:
+Elsa provides two helper macros to initialise two built-in output descriptors:
 
 ```c
 struct json_out out1 = JSON_OUT_BUF(buf, len);
@@ -409,5 +405,5 @@ rename(tmp_file_name, settings_file_name);
 
 # Licensing
 
-Frozen-GPLv2 is released under the [GNU GPLv.2](http://www.gnu.org/licenses/old-licenses/gpl-2.0.html) open source license.
+Elsa is released under the [GNU GPLv.2](http://www.gnu.org/licenses/old-licenses/gpl-2.0.html) open source license.
 
