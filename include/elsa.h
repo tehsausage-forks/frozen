@@ -26,8 +26,6 @@ extern "C" {
 #include <stddef.h>
 #include <stdio.h>
 
-#include <bits/types/FILE.h>
-
 #ifndef JSON_MAX_PATH_LEN
 #define JSON_MAX_PATH_LEN 256
 #endif

@@ -25,7 +25,9 @@
 #include "elsa/setf.c"
 #include "elsa/walk.c"
 
+#include <inttypes.h>
 #include <stdbool.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -151,23 +153,79 @@ static const char *test_json_printf(void) {
 
   {
     struct json_out out = JSON_OUT_BUF(buf, sizeof(buf));
-    const char *result = "42";
-    json_printf(&out, "%d", 42);
+    const char *result = "222 57005 3735928559 16045690985373621933 42";
+    json_printf(&out, "%hhu %hu %lu %llu %d",
+                (uint8_t)0xde,
+                (uint16_t)0xdead,
+                (uint32_t)0xdeadbeefUL,
+                (uint64_t)0xdeadbeeffee1deadULL, 42);
     ASSERT(strcmp(buf, result) == 0);
   }
 
   {
     struct json_out out = JSON_OUT_BUF(buf, sizeof(buf));
-    const char *result = "16045690985373621933 42";
-    json_printf(&out, "%llu %d", 0xdeadbeeffee1deadULL, 42);
+    const char *result = "1 2 3 4 5 6 7 8 9";
+    json_printf(&out, "%hhd %hd %d %ld %lld %jd %zd %td %d",
+                1, 2, 3, 4L, 5LL, (intmax_t)6LL, (size_t)7ULL, (ptrdiff_t)8, 9);
     ASSERT(strcmp(buf, result) == 0);
   }
 
   {
     struct json_out out = JSON_OUT_BUF(buf, sizeof(buf));
-    const char *result = "12 42";
-    size_t foo = 12;
-    json_printf(&out, "%zu %d", foo, 42);
+    const char *result = "1 2 3 4 5 6 7 8 9";
+    json_printf(&out, "%hhu %hu %u %lu %llu %ju %zu %tu %u",
+                1U, 2U, 3U, 4UL, 5ULL, (uintmax_t)6ULL, (size_t)7ULL,
+                (ptrdiff_t)8, 9U);
+    ASSERT(strcmp(buf, result) == 0);
+  }
+
+  {
+    struct json_out out = JSON_OUT_BUF(buf, sizeof(buf));
+    void *ptr = (void *)0xaabbccdd;
+    json_printf(&out, "%p", ptr);
+    /* there is no standard representation for %p to compare to */
+  }
+
+  {
+    struct json_out out = JSON_OUT_BUF(buf, sizeof(buf));
+    const char *result = "Hello";
+    wchar_t wstr[6];
+    size_t nchars = mbstowcs(wstr, "Hello", sizeof(wstr));
+    /* if this isn't 5 then mbstowcs didn't work as expected */
+    if (nchars == 5) {
+      json_printf(&out, "%ls", wstr);
+      ASSERT(strcmp(buf, result) == 0);
+    }
+  }
+
+  {
+    struct json_out out = JSON_OUT_BUF(buf, sizeof(buf));
+    const char *result = "1 % 2";
+    json_printf(&out, "%d %% %d", 1, 2);
+    ASSERT(strcmp(buf, result) == 0);
+  }
+
+  {
+    struct json_out out = JSON_OUT_BUF(buf, sizeof(buf));
+    signed char hhn;
+    short hn;
+    int n;
+    long ln;
+    long long lln;
+    intmax_t jn;
+    size_t zn;
+    ptrdiff_t tn;
+    json_printf(&out, "%d%hhn%hn%n%ln%lln%jn%zn%tn", 123,
+                &hhn, &hn, &n, &ln, &lln, &jn, &zn, &tn);
+    ASSERT(hhn == 3 && hn == 3 && n == 3 && ln == 3 && lln == 3);
+    ASSERT(jn == 3 && zn == 3 && tn == 3);
+  }
+
+  {
+    struct json_out out = JSON_OUT_BUF(buf, sizeof(buf));
+    const char *result = "1 2 3";
+    json_printf(&out, "%" PRIdMAX " %" PRId64 " %d",
+                (intmax_t)1, (int64_t)2, 3);
     ASSERT(strcmp(buf, result) == 0);
   }
 
@@ -271,8 +329,50 @@ static const char *test_json_printf(void) {
   {
     struct json_out out = JSON_OUT_BUF(buf, sizeof(buf));
     memset(buf, 0, sizeof(buf));
-    ASSERT(json_printf(&out, "%.*s %d", 2, "abc", 5) > 0);
-    ASSERT(strcmp(buf, "ab 5") == 0);
+    ASSERT(json_printf(&out, "%.*s %.*s %d", 2, "abc", 4, "abc", 5) > 0);
+    ASSERT(strcmp(buf, "ab abc 5") == 0);
+  }
+
+  {
+    struct json_out out = JSON_OUT_BUF(buf, sizeof(buf));
+    memset(buf, 0, sizeof(buf));
+    ASSERT(json_printf(&out, "%5s", "abc") > 0);
+    ASSERT(strcmp(buf, "  abc") == 0);
+  }
+
+  {
+    struct json_out out = JSON_OUT_BUF(buf, sizeof(buf));
+    memset(buf, 0, sizeof(buf));
+    ASSERT(json_printf(&out, "%-5s", "abc") > 0);
+    ASSERT(strcmp(buf, "abc  ") == 0);
+  }
+
+  {
+    struct json_out out = JSON_OUT_BUF(buf, sizeof(buf));
+    memset(buf, 0, sizeof(buf));
+    ASSERT(json_printf(&out, "%*s", 5, "abc") > 0);
+    ASSERT(strcmp(buf, "  abc") == 0);
+  }
+
+  {
+    struct json_out out = JSON_OUT_BUF(buf, sizeof(buf));
+    memset(buf, 0, sizeof(buf));
+    ASSERT(json_printf(&out, "%*.*s", 5, 2, "abc") > 0);
+    ASSERT(strcmp(buf, "   ab") == 0);
+  }
+
+  {
+    struct json_out out = JSON_OUT_BUF(buf, sizeof(buf));
+    memset(buf, 0, sizeof(buf));
+    ASSERT(json_printf(&out, "%.1Lf", (long double)1.5) > 0);
+    ASSERT(strcmp(buf, "1.5") == 0);
+  }
+
+  {
+    struct json_out out = JSON_OUT_BUF(buf, sizeof(buf));
+    memset(buf, 0, sizeof(buf));
+    ASSERT(json_printf(&out, "%*.*s", 0, 0, "") == 0);
+    ASSERT(strcmp(buf, "") == 0);
   }
 
   {
@@ -309,6 +409,17 @@ static const char *test_json_printf(void) {
     memset(buf, 0, sizeof(buf));
     ASSERT(json_printf(&out, "%c", 0x53) > 0);
     ASSERT(strcmp(buf, "S") == 0);
+  }
+
+  {
+    struct json_out out = JSON_OUT_BUF(buf, sizeof(buf));
+    wchar_t wstr[2];
+    size_t nchars = mbstowcs(wstr, "S", sizeof(wstr));
+    /* if this isn't 1 then mbstowcs didn't work as expected */
+    if (nchars == 1) {
+      ASSERT(json_printf(&out, "%lc", wstr[0]) > 0);
+      ASSERT(strcmp(buf, "S") == 0);
+    }
   }
 
   {

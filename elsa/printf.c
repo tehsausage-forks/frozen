@@ -16,12 +16,13 @@
  */
 
 #include "elsa.h"
-#include <inttypes.h>
 #include <stdarg.h>
 #include <stddef.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <wctype.h>
 #include "util.h"
 
 static int b64idx(int c) {
@@ -63,7 +64,7 @@ int json_vprintf(struct json_out *out, const char *fmt, va_list xap) {
       len += out->printer(out, fmt, 1);
       fmt++;
     } else if (fmt[0] == '%') {
-      char buf[21];
+      char buf[101];
       size_t skip = 2;
 
       if (fmt[1] == 'M') {
@@ -116,74 +117,176 @@ int json_vprintf(struct json_out *out, const char *fmt, va_list xap) {
          * The goal here is to delegate all modifiers parsing to the system
          * printf, as you can see below we still have to parse the format
          * types.
-         *
-         * Currently, %s with strings longer than 20 chars will require
-         * double-buffering (an auxiliary buffer will be allocated from heap).
-         * TODO(dfrank): reimplement %s and %.*s in order to avoid that.
          */
 
-        const char *end_of_format_specifier = "sdfFgGlhuIcxz.*-0123456789";
-        size_t n = strspn(fmt + 1, end_of_format_specifier);
+        size_t n = 1;
         char *pbuf = buf;
         size_t need_len;
-        char fmt2[20];
+        char fmt2[30];
         va_list sub_ap;
-        strncpy(fmt2, fmt, n + 1 > sizeof(fmt2) ? sizeof(fmt2) : n + 1);
-        fmt2[n + 1] = '\0';
+
+        int dyn_args = 0;
+        char len_mod = '\0';
+        char prn_spec;
+
+        /* flags (-, +, #, 0, or space) */
+        while (strchr("-+#0 ", fmt[n]) != NULL) {
+          ++n;
+        }
+
+        /* width (* or number) */
+        if (fmt[n] == '*') {
+          ++dyn_args;
+          ++n;
+        } else {
+          while (is_digit(fmt[n]))
+            ++n;
+        }
+
+        /* precision (.* or .number) */
+        if (fmt[n] == '.') {
+          ++n;
+
+          if (fmt[n] == '*') {
+            ++dyn_args;
+            ++n;
+          } else {
+            while (is_digit(fmt[n]))
+              ++n;
+          }
+        }
+
+        /* length modifier (hh, h, l, ll, j, z, t, L) */
+        /* Windows once used I, I32, and I64 as extensions */
+        switch (fmt[n]) {
+          case 'h':
+          case 'l':
+          case 'j':
+          case 'z':
+          case 't':
+          case 'L':
+          case 'I':
+            len_mod = fmt[n];
+            ++n;
+        }
+
+        if (len_mod == 'h' && fmt[n] == 'h') {
+          len_mod = '1'; /* magic value representing 'hh' */
+          ++n;
+        } else if (len_mod == 'l' && fmt[n] == 'l') {
+          len_mod = '8';  /* magic value representing 'll' */
+          ++n;
+        } else if (len_mod == 'I') {
+          len_mod = 'j';
+          if (fmt[n] == '3' && fmt[n+1] == '2') {
+            if (sizeof(int) >= 4) len_mod = '\0';
+            else                  len_mod = 'l';
+            n += 2;
+          } else if (fmt[n] == '6' && fmt[n+1] == '4') {
+            if (sizeof(int) >= 8)            len_mod = '\0';
+            else if (sizeof(long) >= 8)      len_mod = 'l';
+            else if (sizeof(long long) >= 8) len_mod = '8';
+            n += 2;
+          }
+        }
+
+        /* specifier (diouxX, aAeEfFgG, c, s, p, n, %) */
+        /* %C and %S are extensions equivalent to %lc and %ls */
+        prn_spec = fmt[n++];
+
+        strncpy(fmt2, fmt, n > sizeof(fmt2) ? sizeof(fmt2) : n);
+        fmt2[n] = '\0';
 
         va_copy(sub_ap, ap);
-        need_len =
-            vsnprintf(buf, sizeof(buf), fmt2, sub_ap) + 1 /* null-term */;
+        need_len = vsnprintf(buf, sizeof(buf), fmt2, sub_ap);
         /*
          * TODO(lsm): Fix windows & eCos code path here. Their vsnprintf
          * implementation returns -1 on overflow rather needed size.
          */
-        if (need_len > sizeof(buf)) {
+        if (need_len >= sizeof(buf)) {
           /*
            * resulting string doesn't fit into a stack-allocated buffer `buf`,
            * so we need to allocate a new buffer from heap and use it
            */
           pbuf = (char *) malloc(need_len);
           va_copy(sub_ap, ap);
-          vsnprintf(pbuf, need_len, fmt2, sub_ap);
+          need_len = vsnprintf(pbuf, need_len + 1, fmt2, sub_ap);
         }
 
-        /*
-         * however we need to parse the type ourselves in order to advance
-         * the va_list by the correct amount; there is no portable way to
-         * inherit the advancement made by vprintf.
-         * 32-bit (linux or windows) passes va_list by value.
-         */
-        if ((n + 1 == strlen("%" PRId64) && strcmp(fmt2, "%" PRId64) == 0) ||
-            (n + 1 == strlen("%" PRIu64) && strcmp(fmt2, "%" PRIu64) == 0)) {
-          (void) va_arg(ap, int64_t);
-          skip += strlen(PRIu64) - 1;
-        } else if (n + 1 == 3 && (strcmp(fmt2, "%zu") == 0)) {
-            (void) va_arg(ap, size_t);
-        } else if (strcmp(fmt2, "%.*s") == 0) {
-          (void) va_arg(ap, int);
-          (void) va_arg(ap, char *);
-        } else {
-          switch (fmt2[n]) {
-            case 'u':
-            case 'd':
-              (void) va_arg(ap, int);
-              break;
-            case 'g':
-            case 'f':
+        /* absorb dynamically specified width/precision */
+        if (dyn_args == 2) (void) va_arg(ap, int);
+        if (dyn_args >= 1) (void) va_arg(ap, int);
+
+        /* todo: advance va */
+        switch (prn_spec) {
+          /* integer */
+          case 'd': case 'i': case 'o': case 'u': case 'x': case 'X':
+            switch (len_mod) {
+              case 'l': (void) va_arg(ap, long); break;
+              case '8': (void) va_arg(ap, long long); break;
+              case 'j': (void) va_arg(ap, intmax_t); break;
+              case 'z': (void) va_arg(ap, size_t); break;
+              case 't': (void) va_arg(ap, ptrdiff_t); break;
+              default: (void) va_arg(ap, int);
+            }
+            break;
+
+          /* floating point */
+          case 'a': case 'A': case 'e': case 'E': case 'f': case 'F':
+          case 'g': case 'G':
+            if (len_mod == 'L')
+              (void) va_arg(ap, long double);
+            else
               (void) va_arg(ap, double);
-              break;
-            case 'p':
-              (void) va_arg(ap, void *);
-              break;
-            default:
-              /* many types are promoted to int */
+            break;
+
+          /* character */
+          case 'c': case 'C':
+            if (prn_spec == 'C' || len_mod == 'l')
+              (void) va_arg(ap, wint_t);
+            else
               (void) va_arg(ap, int);
-          }
+            break;
+
+          /* string */
+          case 's': case 'S':
+            if (prn_spec == 'S' || len_mod == 'l')
+              (void) va_arg(ap, wchar_t *);
+            else
+              (void) va_arg(ap, char *);
+            break;
+
+          /* pointer */
+          case 'p':
+            (void) va_arg(ap, void *);
+            break;
+
+          /* pointer-out */
+          case 'n':
+            switch (len_mod) {
+              case '1': *(va_arg(ap, signed char *)) = (signed char)len; break;
+              case 'h':       *(va_arg(ap, short *)) = (short)len; break;
+              case 'l':        *(va_arg(ap, long *)) = len; break;
+              case '8':   *(va_arg(ap, long long *)) = len; break;
+              case 'j':    *(va_arg(ap, intmax_t *)) = len; break;
+              case 'z':      *(va_arg(ap, size_t *)) = (size_t)len; break;
+              case 't':   *(va_arg(ap, ptrdiff_t *)) = len; break;
+
+              default:
+                *(va_arg(ap, int *)) = len; break;
+            }
+            break;
+
+          case '%':
+            break;
+
+          default:
+            /* if the specifier is unknown, treat it as an int and pray */
+            (void) va_arg(ap, int);
         }
 
-        len += out->printer(out, pbuf, strlen(pbuf));
-        skip = n + 1;
+        len += out->printer(out, pbuf, need_len);
+        skip = n;
 
         /* If buffer was allocated from heap, free it */
         if (pbuf != buf) {
