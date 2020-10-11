@@ -1,0 +1,12 @@
+prefix=@CMAKE_INSTALL_PREFIX@
+exec_prefix=${prefix}
+libdir=${prefix}/@CMAKE_INSTALL_LIBDIR@
+includedir=${prefix}/@CMAKE_INSTALL_INCLUDEDIR@
+
+Name: @PROJECT_NAME@
+Version: @PROJECT_VERSION@
+Description: JSON parser and emitter for C/C++
+
+Libs: -L${libdir} -lelsa
+Cflags: -I${includedir}
+
