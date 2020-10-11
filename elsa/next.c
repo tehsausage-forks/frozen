@@ -21,13 +21,13 @@
 #include <string.h>
 
 struct next_data {
-  void *handle;            // Passed handle. Changed if a next entry is found
-  const char *path;        // Path to the iterated object/array
-  int path_len;            // Path length - optimisation
-  int found;               // Non-0 if found the next entry
-  struct json_token *key;  // Object's key
-  struct json_token *val;  // Object's value
-  int *idx;                // Array index
+  void *handle;            /* Passed handle. Changed if a next entry is found */
+  const char *path;        /* Path to the iterated object/array */
+  int path_len;            /* Path length - optimisation */
+  int found;               /* Non-0 if found the next entry */
+  struct json_token *key;  /* Object's key */
+  struct json_token *val;  /* Object's value */
+  int *idx;                /* Array index */
 };
 
 static void next_set_key(struct next_data *d, const char *name, int name_len,
@@ -58,12 +58,10 @@ static void next_cb(void *userdata, const char *name, size_t name_len,
   if (strncmp(d->path, path, d->path_len) != 0) return;
   if (strchr(p + 1, '.') != NULL) return; /* More nested objects - skip */
   if (strchr(p + 1, '[') != NULL) return; /* Ditto for arrays */
-  // {OBJECT,ARRAY}_END types do not pass name, _START does. Save key.
+  /* {OBJECT,ARRAY}_END types do not pass name, _START does. Save key. */
   if (t->type == JSON_TYPE_OBJECT_START || t->type == JSON_TYPE_ARRAY_START) {
-    // printf("SAV %s %d %p\n", path, t->type, t->ptr);
     next_set_key(d, name, name_len, p[0] == '[');
   } else if (d->handle == NULL || d->handle < (void *) t->ptr) {
-    // printf("END %s %d %p\n", path, t->type, t->ptr);
     if (t->type != JSON_TYPE_OBJECT_END && t->type != JSON_TYPE_ARRAY_END) {
       next_set_key(d, name, name_len, p[0] == '[');
     }

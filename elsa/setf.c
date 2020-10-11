@@ -42,7 +42,6 @@ static void json_vsetf_cb(void *userdata, const char *name, size_t name_len,
   int off, len = get_matched_prefix_len(path, data->json_path);
   if (t->ptr == NULL) return;
   off = t->ptr - data->base;
-  // printf("--%d %s %d\n", t->type, path, off);
   if (len > data->matched) data->matched = len;
 
   /*
@@ -86,9 +85,7 @@ int json_vsetf(const char *s, int len, struct json_out *out,
   data.json_path = json_path;
   data.base = s;
   data.end = len;
-  // printf("S:[%.*s] %s %p\n", len, s, json_path, json_fmt);
   json_walk(s, len, json_vsetf_cb, &data);
-  // printf("-> %d %d %d\n", data.prev, data.pos, data.end);
   if (json_fmt == NULL) {
     /* Deletion codepath */
     json_printf(out, "%.*s", data.prev, s);

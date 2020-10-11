@@ -1,6 +1,8 @@
 
 # Features
 
+Elsa is a GPLv2 licensed fork of the [Frozen](https://github.com/cesanta/frozen) library.
+
 - ISO C and ISO C++ compliant portable code
 - Very small footprint
 - No dependencies
@@ -15,7 +17,7 @@
 
 # API reference
 
-## `json_scanf()`, `json_vscanf`
+## `json_scanf()`, `json_vscanf()`
 
 ```c
 int json_scanf(const char *str, int str_len, const char *fmt, ...);
@@ -38,7 +40,7 @@ Scans the JSON string `str`, performing scanf-like conversions according to `fmt
       json_scanf(str, strlen(str), "{c: %B}", &value);
       ```
 3. Several extra format specifiers are supported:
-   - `%B`: consumes `int *`, expects boolean `true` or `false`.
+   - `%B`: consumes `bool *`, expects boolean `true` or `false`.
    - `%Q`: consumes `char **`, expects quoted, JSON-encoded string. A scanned
       string is malloc-ed, caller must free() the string. The scanned string
       is a JSON decoded, unescaped UTF-8 string.
@@ -401,6 +403,44 @@ json_setf(content, strlen(content), &out, ".b", "%Q", "new_string_value");
 fclose(fp);
 json_prettify_file(tmp_file_name);  // Optional
 rename(tmp_file_name, settings_file_name);
+```
+
+# Platforms
+
+Elsa can run on any conforming C99 or C++11 implementation. It can also run on C89/C90 or C++98/C++03 implementations with the following extensions:
+
+* snprintf() and related library functions
+* non-constant aggregate initialization
+* bool and stdbool.h
+
+# Building
+
+Building Elsa as a library requires [CMake](https://cmake.org/) 3.9 or later. It is also possible to simply incorporate the library as source files in to your project.
+
+Starting from an empty build directory, run the following 3 cmake commands in order to configure, build, and (optionally) install the library.
+
+```
+$ cmake /path/to/source/code [options]
+$ cmake --build .
+$ cmake --install .
+```
+
+Some useful configure options:
+
+* `-DELSA_CHECK_COVERAGE=ON` to enable gcov based code coverage on GCC or Clang
+* `-DCMAKE_BUILD_TYPE=Release` for a release build _(-03)_
+* `-DCMAKE_BUILD_TYPE=Debug` for a debug build _(-g)_
+* `-DCMAKE_BUILD_TYPE=RelWithDebInfo` for a release build with debug info _(-O3 -g)_
+* `-DCMAKE_INTERPROCEDURAL_OPTIMIZATION=ON` to enable LTO _(-flto)_
+* `-DBUILD_SHARED_LIBS=ON` to build a shared library
+* `-DCMAKE_INSTALL_PREFIX=/opt/libs/elsa` to specify a custom install path
+
+For more info, see https://cmake.org/cmake/help/
+
+After building you can test the library with:
+
+```sh
+$ ./unit_test
 ```
 
 # Licensing

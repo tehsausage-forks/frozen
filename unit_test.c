@@ -684,17 +684,14 @@ static const char *test_scanf(void) {
   }
 
   {
-    int a = 0;
-    bool b = false;
-    int c = 0xFFFFFFFF;
+    int a;
+    bool b;
+    bool c;
     const char *str = "{\"b\":true,\"c\":false,\"a\":2}";
     ASSERT(json_scanf(str, strlen(str), "{a:%d, b:%B, c:%B}", &a, &b, &c) == 3);
     ASSERT(a == 2);
     ASSERT(b == true);
-    if (sizeof(bool) == 1)
-      ASSERT((char) c == false);
-    else
-      ASSERT(c == false);
+    ASSERT(c == false);
   }
 
   {

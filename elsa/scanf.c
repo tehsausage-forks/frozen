@@ -130,17 +130,7 @@ static void json_scanf_cb(void *callback_data, const char *name,
   switch (info->type) {
     case 'B':
       info->num_conversions++;
-      switch (sizeof(bool)) {
-        case sizeof(char):
-          *(char *) info->target = (token->type == JSON_TYPE_TRUE ? 1 : 0);
-          break;
-        case sizeof(int):
-          *(int *) info->target = (token->type == JSON_TYPE_TRUE ? 1 : 0);
-          break;
-        default:
-          /* should never be here */
-          abort();
-      }
+      *(bool *) info->target = (token->type == JSON_TYPE_TRUE ? true : false);
       break;
     case 'M': {
       union {
